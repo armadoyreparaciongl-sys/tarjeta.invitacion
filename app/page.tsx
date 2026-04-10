@@ -58,7 +58,7 @@ export default function WeddingPage() {
 
         <PhotoGallery />
 
-        <PricingSection />
+        <PricingSection cateringLogo={'@/public/images/logoCatering.jpg'} cateringName="Bruncher - Cocina con amor" />
 
         <RSVPForm />
 

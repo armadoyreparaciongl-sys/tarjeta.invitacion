@@ -39,6 +39,14 @@ export function Footer({ coupleName }: FooterProps) {
             Confirmar
           </a>
         </nav>
+        <div className="mt-10 pt-6 border-t border-card/20">
+          <p className="text-xs text-card/50 font-sans tracking-wide">
+            Diseñado y desarrollado por{" "}
+            <span className="text-card/70 font-medium">
+              Gastón Lucero
+            </span>
+          </p>
+        </div>
       </motion.div>
     </footer>
   );

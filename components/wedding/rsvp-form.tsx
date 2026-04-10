@@ -8,27 +8,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
+type GuestType = "mayor" | "menor" | "mini";
 
 interface Guest {
   id: string;
   name: string;
+  type: GuestType;
   dietaryRestrictions: string;
 }
 
+const guestTypeLabels: Record<GuestType, { label: string; ageRange: string }> = {
+  mayor: { label: "Mayor", ageRange: "11+ años" },
+  menor: { label: "Menor", ageRange: "6-10 años" },
+  mini: { label: "Mini", ageRange: "3-5 años" },
+};
+
 export function RSVPForm() {
   const [attendance, setAttendance] = useState<"yes" | "no" | null>(null);
-  const [mainGuest, setMainGuest] = useState({ name: "", email: "", phone: "" });
+  const [mainGuest, setMainGuest] = useState({ name: "", email: "", phone: "", dietaryRestrictions: "", });
   const [guests, setGuests] = useState<Guest[]>([]);
   const [message, setMessage] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const addGuest = () => {
+  const addGuest = (type: GuestType = "mayor") => {
     setGuests([
       ...guests,
       {
         id: Date.now().toString(),
         name: "",
+        type,
         dietaryRestrictions: "",
       },
     ]);
@@ -48,18 +60,21 @@ export function RSVPForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      await addDoc(collection(db, "rsvps"), {
+        attendance,
+        mainGuest,
+        guests,
+        message,
+        createdAt: serverTimestamp(),
+      });
 
-    console.log({
-      attendance,
-      mainGuest,
-      additionalGuests: guests,
-      message,
-    });
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error("Error guardando RSVP:", error);
+    }
 
     setIsSubmitting(false);
-    setIsSubmitted(true);
   };
 
   if (isSubmitted) {
@@ -128,16 +143,16 @@ export function RSVPForm() {
             >
               <label
                 className={`flex-1 cursor-pointer rounded-xl border-2 p-4 transition-all ${attendance === "yes"
-                    ? "border-primary bg-primary/10"
-                    : "border-border hover:border-primary/50"
+                  ? "border-primary bg-primary/10"
+                  : "border-border hover:border-primary/50"
                   }`}
               >
                 <RadioGroupItem value="yes" className="sr-only" />
                 <div className="flex items-center justify-center gap-2">
                   <div
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${attendance === "yes"
-                        ? "border-primary bg-primary"
-                        : "border-muted-foreground"
+                      ? "border-primary bg-primary"
+                      : "border-muted-foreground"
                       }`}
                   >
                     {attendance === "yes" && (
@@ -150,16 +165,16 @@ export function RSVPForm() {
 
               <label
                 className={`flex-1 cursor-pointer rounded-xl border-2 p-4 transition-all ${attendance === "no"
-                    ? "border-primary bg-primary/10"
-                    : "border-border hover:border-primary/50"
+                  ? "border-primary bg-primary/10"
+                  : "border-border hover:border-primary/50"
                   }`}
               >
                 <RadioGroupItem value="no" className="sr-only" />
                 <div className="flex items-center justify-center gap-2">
                   <div
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${attendance === "no"
-                        ? "border-primary bg-primary"
-                        : "border-muted-foreground"
+                      ? "border-primary bg-primary"
+                      : "border-muted-foreground"
                       }`}
                   >
                     {attendance === "no" && (
@@ -231,29 +246,73 @@ export function RSVPForm() {
                     className="bg-background"
                   />
                 </div>
+                <div className="space-y-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="restriccion" className="text-foreground font-sans">
+                      Restricciones alimentarias (opcional)
+                    </Label>
+
+                    <Input
+                      id="restriccion"
+                      value={mainGuest.dietaryRestrictions}
+                      onChange={(e) =>
+                        setMainGuest({ ...mainGuest, dietaryRestrictions: e.target.value })
+                      }
+                      placeholder="Indicanos si tenés alguna restricción (Sin TACC, vegetariano, vegano, alergias, etc.)"
+                      className="bg-background resize-none"
+                    />
+
+                    <p className="text-xs text-muted-foreground italic">
+                      Contamos con opciones especiales si lo indicás previamente
+                    </p>
+                  </div>
+                </div>
               </div>
+
 
               {/* Additional Guests */}
               <div className="bg-card rounded-2xl p-6 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <h3 className="font-serif text-lg text-foreground">
                     Acompañantes
                   </h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addGuest}
-                    className="gap-1 hover:bg-primary/10"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Añadir
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addGuest("mayor")}
+                      className="gap-1 hover:bg-primary/10"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Mayor (11+)
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addGuest("menor")}
+                      className="gap-1 hover:bg-primary/10"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Menor (6-10)
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addGuest("mini")}
+                      className="gap-1 hover:bg-primary/10"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Mini (3-5)
+                    </Button>
+                  </div>
                 </div>
 
                 {guests.length === 0 ? (
                   <p className="text-muted-foreground font-sans text-sm">
-                    ¿Vienes con acompañantes? Añádelos aquí.
+                    ¿Vienes con acompañantes? Añádelos según su categoría de edad.
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -265,9 +324,14 @@ export function RSVPForm() {
                         className="p-4 bg-background rounded-xl space-y-3"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground font-sans">
-                            Acompañante {index + 1}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground font-sans">
+                              Acompañante {index + 1}
+                            </span>
+                            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-sans">
+                              {guestTypeLabels[guest.type].label} ({guestTypeLabels[guest.type].ageRange})
+                            </span>
+                          </div>
                           <Button
                             type="button"
                             variant="ghost"
@@ -285,6 +349,17 @@ export function RSVPForm() {
                           }
                           placeholder="Nombre del acompañante"
                           required
+                        />
+                        <Input
+                          value={guest.dietaryRestrictions}
+                          onChange={(e) =>
+                            updateGuest(
+                              guest.id,
+                              "dietaryRestrictions",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Restricciones alimentarias (opcional)"
                         />
                       </motion.div>
                     ))}

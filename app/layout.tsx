@@ -19,8 +19,10 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: 'Leo & Iris - Nuestra Boda',
-  description: 'Estás invitado a celebrar la boda de Leo & Iris. Confirma tu asistencia y comparte este día especial con nosotros.',
+  description:
+    'Estás invitado a celebrar la boda de Leo & Iris. Confirma tu asistencia y comparte este día especial con nosotros.',
   generator: 'v0.app',
+
   icons: {
     icon: [
       {
@@ -29,7 +31,7 @@ export const metadata: Metadata = {
       },
       {
         url: '/LogoPrincipal.png',
-        media: '(prefers-color-scheme: darsk)',
+        media: '(prefers-color-scheme: dark)', // 👈 ojo typo (darsk → dark)
       },
       {
         url: '/LogoPrincipal.svg',
@@ -38,7 +40,33 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-icon.png',
   },
-}
+
+  // 🔥 ESTO ES LO IMPORTANTE
+  openGraph: {
+    title: 'Leo & Iris - Nuestra Boda',
+    description:
+      '15 de Agosto 2026 • Te esperamos para compartir este día especial 💍',
+    url: 'https://boda-iris-leo.vercel.app/', // o tu dominio
+    siteName: 'Boda Leo & Iris',
+    images: [
+      {
+        url: '/preview.png', // 👈 ESTE MANDA EN WHATSAPP
+        width: 1200,
+        height: 630,
+        alt: 'Invitación de boda Leo & Iris',
+      },
+    ],
+    locale: 'es_AR',
+    type: 'website',
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Leo & Iris - Nuestra Boda',
+    description: '15 de Agosto 2026',
+    images: ['/preview.png'],
+  },
+};
 
 export default function RootLayout({
   children,

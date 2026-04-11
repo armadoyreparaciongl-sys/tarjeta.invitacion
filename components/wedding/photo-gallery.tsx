@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { getPhotos, uploadPhoto } from "@/lib/firebase-photo";
 
 interface Photo {
   id: string;
@@ -23,11 +24,7 @@ interface Photo {
 const PREVIEW_COUNT = 6;
 
 export function PhotoGallery() {
-  const [photos, setPhotos] = useState<Photo[]>([
-    { id: "1", url: "/images/gallery-1.jpg", uploadedBy: "Los Novios" },
-    { id: "2", url: "/images/gallery-2.jpg", uploadedBy: "Los Novios" },
-    { id: "3", url: "/images/gallery-3.jpg", uploadedBy: "Los Novios" },
-  ]);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
@@ -36,27 +33,34 @@ export function PhotoGallery() {
   const hasMorePhotos = photos.length > PREVIEW_COUNT;
   const remainingCount = photos.length - PREVIEW_COUNT;
 
+  useEffect(() => {
+    const loadPhotos = async () => {
+      const data = await getPhotos();
+      setPhotos(data);
+    };
+
+    loadPhotos();
+  }, []);
+
   const handleFileUpload = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files;
       if (!files) return;
 
       setIsUploading(true);
 
-      Array.from(files).forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const newPhoto: Photo = {
-            id: Date.now().toString() + Math.random().toString(36).slice(2),
-            url: e.target?.result as string,
-            uploadedBy: "Invitado",
-          };
-          setPhotos((prev) => [...prev, newPhoto]);
-        };
-        reader.readAsDataURL(file);
-      });
+      try {
+        for (const file of Array.from(files)) {
+          await uploadPhoto(file);
+        }
 
-      setTimeout(() => setIsUploading(false), 500);
+        const updatedPhotos = await getPhotos();
+        setPhotos(updatedPhotos);
+      } catch (error) {
+        console.error("Error subiendo imagen:", error);
+      }
+
+      setIsUploading(false);
       event.target.value = "";
     },
     []
@@ -80,7 +84,7 @@ export function PhotoGallery() {
   const openGalleryAtPhoto = (photo: Photo) => {
     setSelectedPhoto(photo);
   };
-
+  console.log(photos)
   return (
     <section id="galeria" className="py-24 px-4 bg-background">
       <div className="max-w-6xl mx-auto">
@@ -173,7 +177,7 @@ export function PhotoGallery() {
             </motion.div>
 
             {/* View All Button */}
-            <motion.div
+            {photos.length > 4 && <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -191,7 +195,7 @@ export function PhotoGallery() {
                   Ver todas las fotos ({photos.length})
                 </span>
               </Button>
-            </motion.div>
+            </motion.div>}
           </>
         ) : (
           <div className="text-center py-16">
@@ -333,7 +337,30 @@ export function PhotoGallery() {
               >
                 <ChevronRight className="w-8 h-8" />
               </Button>
+              <Button
+                variant="outline"
+                className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm"
+                onClick={async (e) => {
+                  e.stopPropagation();
 
+                  try {
+                    const response = await fetch(selectedPhoto.url);
+                    const blob = await response.blob();
+
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = "foto-boda.jpg";
+                    link.click();
+
+                    window.URL.revokeObjectURL(url);
+                  } catch (error) {
+                    console.error("Error al descargar la imagen", error);
+                  }
+                }}
+              >
+                Descargar
+              </Button>
               <motion.div
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}

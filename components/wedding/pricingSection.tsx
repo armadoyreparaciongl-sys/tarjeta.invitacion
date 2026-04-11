@@ -447,11 +447,11 @@ export function PricingSection({
 
                 {/* Footer */}
                 <div className="mt-10 p-2 text-center border-t border-[#f1eae0]">
-                  <p className="text-sm text-muted-foreground font-sans italic mt-2">
+                  <p className="text-sm text-muted-foreground font-sans italic ">
                     Contamos con opciones especiales para celíacos, vegetarianos y veganos.
                     Por favor indicalo al confirmar tu asistencia.
                   </p>
-                  <p className="text-[10px] tracking-widest uppercase text-muted-foreground mt-3">
+                  <p className="text-[10px] tracking-widest uppercase text-muted-foreground mt-3 mb-3">
                     Menú Bruncher · Servicio de Catering
                   </p>
                 </div>

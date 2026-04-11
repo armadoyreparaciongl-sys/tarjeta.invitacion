@@ -119,7 +119,7 @@ export function RSVPForm() {
           </h2>
           <div className="w-24 h-px bg-primary mx-auto mb-6" />
           <p className="text-muted-foreground font-sans max-w-md mx-auto">
-            Por favor confirma tu asistencia antes del 15 de mayo
+            Por favor confirma tu asistencia antes del 31 de Julio
           </p>
         </motion.div>
 
@@ -272,7 +272,7 @@ export function RSVPForm() {
 
               {/* Additional Guests */}
               <div className="bg-card rounded-2xl p-6 shadow-sm space-y-4">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <h3 className="font-serif text-lg text-foreground">
                     Acompañantes
                   </h3>

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import IconoCorazon from "../../public/corazon.png"
 import Image from "next/image";
+import IconoCorazon from "../../public/corazon.png";
 
 interface CountdownProps {
   targetDate: Date;
@@ -17,39 +17,98 @@ interface TimeLeft {
 }
 
 export function Countdown({ targetDate }: CountdownProps) {
-  const dateBoda = targetDate
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
     hours: 0,
     minutes: 0,
     seconds: 0,
   });
+
   const [mounted, setMounted] = useState(false);
+  const [isWeddingDay, setIsWeddingDay] = useState(false);
 
   useEffect(() => {
     setMounted(true);
 
     const calculateTimeLeft = () => {
-      const difference = dateBoda.getTime() - new Date().getTime();
+      const now = new Date();
+      const difference = targetDate.getTime() - now.getTime();
 
-      if (difference > 0) {
+      // 👇 detectar mismo día (más UX)
+      const isSameDay =
+        now.getFullYear() === targetDate.getFullYear() &&
+        now.getMonth() === targetDate.getMonth() &&
+        now.getDate() === targetDate.getDate();
+
+      if (difference <= 0) {
+        setIsWeddingDay(true);
         setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60),
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
         });
+        return;
       }
+
+      setTimeLeft({
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      });
     };
 
     calculateTimeLeft();
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, [dateBoda]);
+  }, [targetDate]);
 
-  if (!mounted) {
-    return null;
+  if (!mounted) return null;
+
+  // 🎉 🎉 🎉 PANTALLA GRAN DÍA
+  if (isWeddingDay) {
+    return (
+      <section className="py-10 bg-primary/5">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.h2
+              className="font-serif text-3xl md:text-5xl text-foreground mb-4"
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+            >
+              ¡Hoy es el gran día! 💍
+            </motion.h2>
+
+            <p className="text-lg text-muted-foreground font-sans">
+              Llegó el momento que tanto esperamos ❤️
+            </p>
+
+            {/* 🎊 Emojis animados */}
+            <div className="mt-6 flex justify-center gap-4 text-3xl">
+              {["🎉", "🥂", "✨", "🎊"].map((emoji, i) => (
+                <motion.span
+                  key={i}
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 1.5,
+                    delay: i * 0.2,
+                  }}
+                >
+                  {emoji}
+                </motion.span>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+    );
   }
 
   const timeUnits = [
@@ -60,7 +119,7 @@ export function Countdown({ targetDate }: CountdownProps) {
   ];
 
   return (
-    <section className="py-10 bg-primary/5" >
+    <section className="py-10 bg-primary/5">
       <div className="max-w-4xl mx-auto px-4 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -103,13 +162,13 @@ export function Countdown({ targetDate }: CountdownProps) {
           >
             Para el día más especial de nuestras vidas
           </motion.p>
+
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="mt-4 flex justify-center text-foreground/80"
-            style={{ paddingTop: 20 }}
+            className="mt-4 flex justify-center"
           >
             <Image
               src={IconoCorazon}

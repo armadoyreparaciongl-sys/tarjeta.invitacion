@@ -201,7 +201,7 @@ export function PhotoGallery() {
           <div className="text-center py-16">
             <ImageIcon className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
             <p className="text-muted-foreground font-sans">
-              Aun no hay fotos. Sube tus fotos para compartir!
+              Aún no hay fotos. ¿Quieres ser el primero en subir las tuyas?
             </p>
           </div>
         )}

@@ -54,7 +54,7 @@ export function LocationSection({
               {diaSemana}
             </span>
 
-            <span className="text-4xl md:text-5xl font-serif">
+            <span className="text-4xl md:text-5xl font-serif leading-none">
               {dia}
             </span>
 

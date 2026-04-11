@@ -10,6 +10,7 @@ import { MusicPlayer } from "@/components/ui/MusicPlayer";
 import { useMemo, useState } from "react";
 import { StartModal } from "@/components/ui/StartModal";
 import { PricingSection } from "@/components/wedding/pricingSection";
+import { AudioControl } from "@/components/ui/audioControl";
 
 export default function WeddingPage() {
   const weddingDate = useMemo(
@@ -17,16 +18,16 @@ export default function WeddingPage() {
     []
   );
   const [showModal, setShowModal] = useState(true);
-
+  console.log('weddingDate', weddingDate)
   const weddingDetails = {
     coupleName: "Iris & Leo",
     date: "15 de Agosto, 2026",
     venueName: "Parroquia ",
-    valueNameBoda: "Salon municipal",
-    address: "Benjamín Matienzo, Benjamín Gould, Córdoba",
+    valueNameBoda: "Salón municipal",
+    address: "Benjamín Matienzo esq. Mtra. Dorila G. de Aguiar, Benjamín Gould, Córdoba",
     addressBoda: "Benjamín Matienzo, Benjamín Gould, Córdoba",
-    time: "20:00 horas",
-    timeBoda: "21:00 horas",
+    time: "20:00 hs",
+    timeBoda: "21:00 hs",
     mapUrl: "https://maps.app.goo.gl/caWFsXCf1H7CTUXZ7",
     mapUrlBoda: "https://maps.app.goo.gl/YErD3DeDuC2DXBkb6"
   };
@@ -60,8 +61,9 @@ export default function WeddingPage() {
 
         <PricingSection cateringLogo={'@/public/images/logoCatering.jpg'} cateringName="Bruncher - Cocina con amor" />
 
-        <RSVPForm />
+        <RSVPForm deadline={new Date(2026, 6, 31)} />
 
+        {!showModal && <AudioControl />}
         <Footer coupleName={weddingDetails.coupleName} />
       </main>
     </>

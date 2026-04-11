@@ -26,13 +26,15 @@ const guestTypeLabels: Record<GuestType, { label: string; ageRange: string }> = 
   mini: { label: "Mini", ageRange: "3-5 años" },
 };
 
-export function RSVPForm() {
+export function RSVPForm({ deadline }: { deadline: Date }) {
   const [attendance, setAttendance] = useState<"yes" | "no" | null>(null);
   const [mainGuest, setMainGuest] = useState({ name: "", email: "", phone: "", dietaryRestrictions: "", });
   const [guests, setGuests] = useState<Guest[]>([]);
   const [message, setMessage] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isDeadlinePassed = new Date() > deadline;
+
 
   const addGuest = (type: GuestType = "mayor") => {
     setGuests([
@@ -61,13 +63,43 @@ export function RSVPForm() {
     setIsSubmitting(true);
 
     try {
-      await addDoc(collection(db, "rsvps"), {
+      const payload = {
         attendance,
         mainGuest,
         guests,
         message,
-        createdAt: serverTimestamp(),
-      });
+        createdAt: new Date().toISOString(),
+      };
+
+      // 🔹 Guardar en Firebase (esto sí siempre)
+      await addDoc(collection(db, "rsvps"), payload);
+
+      // 🔹 SOLO si asiste → enviar a n8n
+      if (attendance === "yes") {
+        const n8nPayload = {
+          nombre: mainGuest.name,
+          email: mainGuest.email,
+          telefono: mainGuest.phone,
+          restriccion_alimenticia: mainGuest.dietaryRestrictions || "",
+          mensaje: message || "",
+          acompanantes: guests.map((g) => ({
+            nombre: g.name,
+            type: g.type,
+            restriccion_alimenticia: g.dietaryRestrictions || "",
+          })),
+        };
+
+        const res = await fetch("https://n8n.ai.streambe.com/webhook/api/confirmacion-boda", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(n8nPayload),
+        });
+
+        const data = await res.json();
+        console.log("Respuesta n8n:", data);
+      }
 
       setIsSubmitted(true);
     } catch (error) {
@@ -76,6 +108,22 @@ export function RSVPForm() {
 
     setIsSubmitting(false);
   };
+
+  if (isDeadlinePassed) {
+    return (
+      <section id="confirmar" className="py-24 px-4 bg-secondary">
+        <div className="max-w-xl mx-auto text-center">
+          <h2 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
+            Confirmación cerrada
+          </h2>
+          <p className="text-muted-foreground font-sans">
+            La fecha límite para confirmar asistencia (31 de Julio) ya ha pasado.
+            Si necesitás avisarnos algo, comunicate con nosotros.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   if (isSubmitted) {
     return (
